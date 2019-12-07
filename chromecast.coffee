@@ -13,7 +13,7 @@ module.exports = (env) ->
 	class ChromecastPlugin extends env.plugins.Plugin
 
 		init: (app, @framework, @config) =>
-		
+
 			deviceConfigDef = require("./device-config-schema")
 
 			@framework.deviceManager.registerDeviceClass("Chromecast", {
@@ -24,6 +24,7 @@ module.exports = (env) ->
 		class Chromecast extends env.devices.AVPlayer
 
 			_client = null
+			_player = null
 			_device = null
 			_unreachable = false
 
@@ -56,7 +57,8 @@ module.exports = (env) ->
 								session = sessions[0];
 								if session.transportId
 									_client.join(session, DefaultMediaReceiver, (err,app) ->
-										app.on('status', (status) ->
+										_player = app
+										_player.on('status', (status) ->
 											_device.updatePlayerState(status);
 										);
 									) 
@@ -64,15 +66,34 @@ module.exports = (env) ->
 					);
 				);
 
+			play: () ->
+				_player?.play()
+
+			pause: () ->
+				_player?.pause()
+
+			next: () ->
+				_player?.media?.sessionRequest({ type: 'QUEUE_UPDATE', jump: 1 })
+
+			previous: () ->
+				_player?.media?.sessionRequest({ type: 'QUEUE_UPDATE', jump: -1 })
+
+			stop: () ->
+				if _player.connection
+					_client.stop(_player, (err,response) ->
+					)
+
 			updateVolume: (status) ->
 				volume = status?.volume?.level
 				if volume
 					_device._setVolume(Math.round(volume * 100))
 
 			updatePlayerState: (status) ->
-				playerstate = status?.playerState?.toLowerCase()
-				if playerstate
-					_device._setState(playerstate)
+				playerstate = status?.playerState
+				if playerstate == 'PLAYING'
+					_device._setState('play')
+				if playerstate == 'PAUSED'
+					_device._setState('pause')
 				artist = status?.media?.metadata?.artist
 				if artist
 					_device._setCurrentArtist(artist)
@@ -83,7 +104,7 @@ module.exports = (env) ->
 			checkIfIdle: (status) ->
 				idlescreen = status?.applications?[0].isIdleScreen
 				if idlescreen
-					_device._setState('stopped')
+					_device._setState('stop')
 					_device._setCurrentArtist()
 					_device._setCurrentTitle()
 
