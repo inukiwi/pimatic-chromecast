@@ -15,7 +15,7 @@
     "pimatic",
     "pimatic-plugin"
   ],
-  "version": "0.9.0",
+  "version": "0.9.1",
   "homepage": "https://github.com/FrostedKiwi/pimatic-chromecast",
   "repository": {
     "type": "git",
