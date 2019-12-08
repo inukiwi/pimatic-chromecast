@@ -21,6 +21,36 @@ module.exports = (env) ->
 				createCallback: (config) => new Chromecast(config)
 			})
 
+			@framework.deviceManager.on "discover", @onDiscover
+
+		onDiscover: (eventData) =>
+			_deviceManager = @framework.deviceManager
+			_deviceManager.discoverMessage( "pimatic-chromecast", "Searching for Chromecast devices on network")
+			sequence = [
+				mdns.rst.DNSServiceResolve()
+				if 'DNSServiceGetAddrInfo' of mdns.dns_sd then mdns.rst.DNSServiceGetAddrInfo() else mdns.rst.getaddrinfo(families: [ 4 ])
+				mdns.rst.makeAddressesUnique()
+			]
+			browser = mdns.createBrowser(mdns.tcp('googlecast'), {resolverSequence: sequence})
+
+			_deviceManager = @framework.deviceManager
+
+			browser.on('serviceUp', (service) ->
+				name = service.txtRecord.fn
+				ip = service.addresses[0]
+				isnew = not _deviceManager.devicesConfig.some (deviceconf, iterator) =>
+					deviceconf.ip is ip
+				if isnew
+					config =
+						class: "Chromecast"
+						name: name
+						ip: ip
+					_deviceManager.discoveredDevice( "pimatic-chromecast", config.name, config)
+			);
+
+			browser.start();
+			setTimeout( ( => browser.stop() ), 20000)
+
 		class Chromecast extends env.devices.AVPlayer
 
 			_client = null
