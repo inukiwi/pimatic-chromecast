@@ -1,5 +1,6 @@
 pimatic-chromecast
 =======================
+[![npm version](https://badge.fury.io/js/pimatic-chromecast.svg)](https://badge.fury.io/js/pimatic-chromecast)
 
 Access your Google Cast devices in pimatic
 
@@ -7,6 +8,10 @@ Access your Google Cast devices in pimatic
 - Discover Google Cast compatible devices in your network
 - Retrieve media status from Chromecast (playstate, volume, artist, title)
 - Control media (play, pause, stop, skip, previous)
+
+## Planned features
+- Control volume using rules
+- Cast video/audio using rules
 
 ## Requirements
 This plugins uses multicast DNS service discovery using the mdns library, which has the following requirement:
