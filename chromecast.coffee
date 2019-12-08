@@ -79,21 +79,29 @@ module.exports = (env) ->
 				);
 				_client.connect(@config.ip, ->
 					_unreachable = false
+
+					_client.getStatus((err, status) ->
+						_device.onStatus(status)
+					)
+
 					_client.on('status', (status) ->
-						_device.updateVolume(status);
-						_device.checkIfIdle(status);
-						_client.getSessions((err,sessions) ->
-							if (sessions.length > 0)
-								session = sessions[0];
-								if session.transportId
-									_client.join(session, DefaultMediaReceiver, (err,app) ->
-										_player = app
-										_player.on('status', (status) ->
-											_device.updatePlayerState(status);
-										);
-									) 
-						);
+						_device.onStatus(status)
 					);
+				);
+
+			onStatus: (status) ->
+				_device.updateVolume(status);
+				_device.checkIfIdle(status);
+				_client.getSessions((err,sessions) ->
+					if (sessions.length > 0)
+						session = sessions[0];
+						if session.transportId
+							_client.join(session, DefaultMediaReceiver, (err,app) ->
+								_player = app
+								_player.on('status', (status) ->
+									_device.updatePlayerState(status);
+								);
+							) 
 				);
 
 			play: () ->
