@@ -55,7 +55,6 @@ module.exports = (env) ->
 
 			_client = null
 			_player = null
-			_device = null
 			_unreachable = false
 
 			constructor: (@config, lastState) ->
@@ -68,83 +67,87 @@ module.exports = (env) ->
 				@init()
 
 			init: () ->
-				_device = this
-				_client = new Client()
-				_client.on('error', (err) ->
+				self = this
+				@_client = new Client()
+				@_client.on('error', (err) ->
 					if !_unreachable
-						env.logger.error('Error: %s', err.message);
-						_unreachable = true;
-					_client.close();
-					setTimeout( ( => _device.init() ), 5000)
+						env.logger.debug('%s: %s', self.name, err.message);
+						self._unreachable = true;
+						if err.message == 'Device timeout'
+							env.logger.error('%s: Lost connection to device', self.name);
+					self._client.close();
+					setTimeout( ( => self.init() ), 5000)
 				);
-				_client.connect(@config.ip, ->
-					_unreachable = false
+				@_client.connect(@config.ip, ->
+					self._unreachable = false
 
-					_client.getStatus((err, status) ->
-						_device.onStatus(status)
+					self._client.getStatus((err, status) ->
+						self.onStatus(status)
+						env.logger.info('Connected to %s', self.name);
 					)
 
-					_client.on('status', (status) ->
-						_device.onStatus(status)
+					self._client.on('status', (status) ->
+						self.onStatus(status)
 					);
 				);
 
 			onStatus: (status) ->
-				_device.updateVolume(status);
-				_device.checkIfIdle(status);
-				_client.getSessions((err,sessions) ->
+				self = this
+				@updateVolume(status);
+				@checkIfIdle(status);
+				@_client.getSessions((err,sessions) ->
 					if (sessions.length > 0)
 						session = sessions[0];
 						if session.transportId
-							_client.join(session, DefaultMediaReceiver, (err,app) ->
-								_player = app
-								_player.on('status', (status) ->
-									_device.updatePlayerState(status);
+							self._client.join(session, DefaultMediaReceiver, (err,app) ->
+								self._player = app
+								self._player.on('status', (status) ->
+									self.updatePlayerState(status);
 								);
 							) 
 				);
 
 			play: () ->
-				_player?.play()
+				@_player?.play()
 
 			pause: () ->
-				_player?.pause()
+				@_player?.pause()
 
 			next: () ->
-				_player?.media?.sessionRequest({ type: 'QUEUE_UPDATE', jump: 1 })
+				@_player?.media?.sessionRequest({ type: 'QUEUE_UPDATE', jump: 1 })
 
 			previous: () ->
-				_player?.media?.sessionRequest({ type: 'QUEUE_UPDATE', jump: -1 })
+				@_player?.media?.sessionRequest({ type: 'QUEUE_UPDATE', jump: -1 })
 
 			stop: () ->
-				if _player.connection
-					_client.stop(_player, (err,response) ->
+				if @_player.connection
+					@_client.stop(_player, (err,response) ->
 					)
 
 			updateVolume: (status) ->
 				volume = status?.volume?.level
 				if volume
-					_device._setVolume(Math.round(volume * 100))
+					@_setVolume(Math.round(volume * 100))
 
 			updatePlayerState: (status) ->
 				playerstate = status?.playerState
 				if playerstate == 'PLAYING'
-					_device._setState('play')
+					@_setState('play')
 				if playerstate == 'PAUSED'
-					_device._setState('pause')
+					@_setState('pause')
 				artist = status?.media?.metadata?.artist
 				if artist
-					_device._setCurrentArtist(artist)
+					@_setCurrentArtist(artist)
 				title = status?.media?.metadata?.title
 				if title
-					_device._setCurrentTitle(title)
+					@_setCurrentTitle(title)
 
 			checkIfIdle: (status) ->
 				idlescreen = status?.applications?[0].isIdleScreen
 				if idlescreen
-					_device._setState('stop')
-					_device._setCurrentArtist()
-					_device._setCurrentTitle()
+					@_setState('stop')
+					@_setCurrentArtist()
+					@_setCurrentTitle()
 
 			destroy: () ->
 				super()
