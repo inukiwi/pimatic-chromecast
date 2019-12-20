@@ -146,8 +146,8 @@ module.exports = (env) ->
 				idlescreen = status?.applications?[0].isIdleScreen
 				if idlescreen
 					@_setState('stop')
-					@_setCurrentArtist()
-					@_setCurrentTitle()
+					@_setCurrentArtist('')
+					@_setCurrentTitle('')
 
 			destroy: () ->
 				super()
