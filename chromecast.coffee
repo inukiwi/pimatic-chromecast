@@ -121,7 +121,7 @@ module.exports = (env) ->
 
 			stop: () ->
 				if @_player.connection
-					@_client.stop(_player, (err,response) ->
+					@_client.stop(@._player, (err,response) ->
 					)
 
 			updateVolume: (status) ->
