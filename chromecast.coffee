@@ -57,6 +57,20 @@ module.exports = (env) ->
 			_player = null
 			_unreachable = false
 
+			actions:
+				play:
+					description: "starts playing"
+				pause:
+					description: "pauses playing"
+				stop:
+					description: "stops playing"
+				next:
+					description: "play next song"
+				previous:
+					description: "play previous song"
+				setVolume:
+					description: "Change volume of player"
+
 			constructor: (@config, lastState) ->
 				@name = @config.name
 				@id = @config.id 
@@ -123,6 +137,11 @@ module.exports = (env) ->
 				if @_player.connection
 					@_client.stop(@._player, (err,response) ->
 					)
+
+			setVolume: (volume) ->
+				options =
+					level: volume / 100
+				return Promise.resolve(@_client.setVolume(options, (err,response) ->))
 
 			updateVolume: (status) ->
 				volume = status?.volume?.level
