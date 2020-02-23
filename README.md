@@ -9,8 +9,6 @@ Access your Google Cast devices in pimatic
 - Retrieve media status from Chromecast (playstate, volume, artist, title)
 - Control media (play, pause, stop, skip, previous)
 - Control volume using rules
-
-## Planned features
 - Cast video/audio using rules
 
 ## Requirements
