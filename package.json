@@ -9,7 +9,8 @@
     "README.md",
     "LICENSE",
     "chromecast-config-schema.coffee",
-    "device-config-schema.coffee"
+    "device-config-schema.coffee",
+    "actions.coffee"
   ],
   "keywords": [
     "pimatic",

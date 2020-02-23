@@ -21,6 +21,9 @@ module.exports = (env) ->
 				createCallback: (config) => new Chromecast(config)
 			})
 
+			actions = require("./actions") env
+			@framework.ruleManager.addActionProvider(new actions.ChromecastCastActionProvider(@framework))
+
 			@framework.deviceManager.on "discover", @onDiscover
 
 		onDiscover: (eventData) =>
@@ -70,6 +73,8 @@ module.exports = (env) ->
 					description: "play previous song"
 				setVolume:
 					description: "Change volume of player"
+				castMedia:
+					description: "Cast remote media to device"
 
 			constructor: (@config, lastState) ->
 				@name = @config.name
@@ -142,6 +147,23 @@ module.exports = (env) ->
 				options =
 					level: volume / 100
 				return Promise.resolve(@_client.setVolume(options, (err,response) ->))
+
+			castMedia: (url) ->
+				url = url[0].slice(1, -1);
+				media =
+					contentId: url
+					streamType: 'BUFFERED'
+					metadata: 
+						type: 0
+						metadataType: 0
+						title: 'Pimatic'
+
+				return @startStream(media)
+
+			startStream: (media) ->
+				return Promise.resolve(@_client.launch(DefaultMediaReceiver, (err,player) ->
+					player.load(media, { autoplay: true}, (err,status) ->)
+				))
 
 			updateVolume: (status) ->
 				volume = status?.volume?.level
