@@ -184,7 +184,13 @@ module.exports = (env) ->
 				return Promise.resolve()
 
 			startStream: (media) ->
+				self = this
 				return Promise.resolve(@_client.launch(DefaultMediaReceiver, (err,player) ->
+					player.on('status', (status) ->
+						if status.idleReason == 'FINISHED'
+							self._client.stop(player, (err,response) ->)
+					)
+
 					player.load(media, { autoplay: true}, (err,status) ->)
 				))
 
