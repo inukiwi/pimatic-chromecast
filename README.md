@@ -10,6 +10,10 @@ Access your Google Cast devices in pimatic
 - Control media (play, pause, stop, skip, previous)
 - Control volume using rules
 - Cast video/audio using rules
+- Cast speech using text-to-speech
+
+## Supported languages for text-to-speech
+Use the language codes that are available in [node-gtts](https://github.com/thiennq/node-gtts/blob/master/index.js#L10), for example 'en', 'de', or 'nl'.
 
 ## Requirements
 This plugins uses multicast DNS service discovery using the mdns library, which has the following requirement:

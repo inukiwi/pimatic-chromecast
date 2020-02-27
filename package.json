@@ -25,7 +25,8 @@
   "configSchema": "chromecast-config-schema.coffee",
   "dependencies": {
     "castv2-client": "^1.2.0",
-    "mdns": "^2.5.1"
+    "mdns": "^2.5.1",
+    "node-gtts": "^2.0.2"
   },
   "peerDependencies": {
     "pimatic": "0.9.*"
