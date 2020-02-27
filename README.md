@@ -12,6 +12,16 @@ Access your Google Cast devices in pimatic
 - Cast video/audio using rules
 - Cast speech using text-to-speech
 
+## Rules usage
+Casting media:
+```
+cast {{ url }} to {{ device }}
+```
+Casting text (to speech):
+```
+cast {{ text }} in language {{ language }} to {{ device }}
+```
+
 ## Supported languages for text-to-speech
 Use the language codes that are available in [node-gtts](https://github.com/thiennq/node-gtts/blob/master/index.js#L10), for example 'en', 'de', or 'nl'.
 
