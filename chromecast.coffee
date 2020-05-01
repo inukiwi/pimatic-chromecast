@@ -112,7 +112,7 @@ module.exports = (env) ->
 				@_client = new Client()
 				@_client.on('error', (err) ->
 					if !_unreachable
-						if @plugin.debug then env.logger.debug('%s: %s', self.name, err.message);
+						if self.plugin.config.debug then env.logger.debug('%s: %s', self.name, err.message);
 						self._unreachable = true;
 						if err.message == 'Device timeout'
 							env.logger.error('%s: Lost connection to device', self.name);
@@ -123,7 +123,7 @@ module.exports = (env) ->
 					self._unreachable = false
 
 					self._client.getStatus((err, status) ->
-						if err? and @plugin.debug then env.logger.debug('%s: %s', self.name, err.message);
+						if err? and self.plugin.config.debug then env.logger.debug('%s: %s', self.name, err.message);
 						self.onStatus(status)
 						env.logger.info('Connected to %s', self.name);
 					)
@@ -143,7 +143,7 @@ module.exports = (env) ->
 						session = sessions[0];
 						if session.transportId
 							self._client.join(session, DefaultMediaReceiver, (err,app) ->
-								if err? and @plugin.debug then env.logger.debug('%s: %s', self.name, err.message);
+								if err? and self.plugin.config.debug then env.logger.debug('%s: %s', self.name, err.message);
 								self._player = app
 								self._player.on('status', (status) ->
 									self.updatePlayerState(status);
@@ -170,7 +170,7 @@ module.exports = (env) ->
 			stop: () ->
 				if @_player.connection
 					@_client.stop(@._player, (err,response) ->
-						if err? and @plugin.debug then env.logger.debug('%s: %s', self.name, err.message);
+						if err? and self.plugin.config.debug then env.logger.debug('%s: %s', self.name, err.message);
 					)
 				return Promise.resolve()
 
@@ -178,7 +178,7 @@ module.exports = (env) ->
 				options =
 					level: volume / 100
 				return Promise.resolve(@_client.setVolume(options, (err,response) ->
-					if err? and @plugin.debug then env.logger.debug('%s: %s', self.name, err.message);
+					if err? and self.plugin.config.debug then env.logger.debug('%s: %s', self.name, err.message);
 				))
 
 			setCurrentApp: (app) ->
@@ -209,16 +209,16 @@ module.exports = (env) ->
 			startStream: (media) ->
 				self = this
 				return Promise.resolve(@_client.launch(DefaultMediaReceiver, (err,player) ->
-					if err? and @plugin.debug then env.logger.debug('%s: %s', self.name, err.message);
+					if err? and self.plugin.config.debug then env.logger.debug('%s: %s', self.name, err.message);
 					player.on('status', (status) ->
 						if status.idleReason == 'FINISHED'
 							self._client.stop(player, (err,response) ->
-								if err? and @plugin.debug then env.logger.debug('%s: %s', self.name, err.message);
+								if err? and self.plugin.config.debug then env.logger.debug('%s: %s', self.name, err.message);
 							)
 					)
 
 					player.load(media, { autoplay: true}, (err,status) ->
-						if err? and @plugin.debug then env.logger.debug('%s: %s', self.name, err.message);
+						if err? and self.plugin.config.debug then env.logger.debug('%s: %s', self.name, err.message);
 					)
 				))
 
