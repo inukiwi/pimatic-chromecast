@@ -12,6 +12,10 @@ module.exports = (env) ->
 
 	gtts = require('node-gtts');
 
+	extend = (obj, mixin) ->
+    obj[key] = value for key, value of mixin
+    obj
+
 	class ChromecastPlugin extends env.plugins.Plugin
 
 		init: (app, @framework, @config) =>
@@ -73,34 +77,35 @@ module.exports = (env) ->
 
 			_client = null
 			_player = null
+			_currentApp = null
 			_unreachable = false
-
-			actions:
-				play:
-					description: "starts playing"
-				pause:
-					description: "pauses playing"
-				stop:
-					description: "stops playing"
-				next:
-					description: "play next song"
-				previous:
-					description: "play previous song"
-				setVolume:
-					description: "Change volume of player"
-				castMedia:
-					description: "Cast remote media to device"
-				castText:
-					description: "Cast text as speech to devie"
 
 			constructor: (@config, @settings, lastState) ->
 				@name = @config.name
 				@id = @config.id 
 				@_volume = lastState?.volume?.value or 0
 				@_state = lastState?.state?.value or off
+				@_currentApp = lastState?.currentApp?.value or ""
+				@extendAttributes()
+				@extendActions()
 				super()
 
 				@init()
+
+			extendAttributes: () =>
+				@attributes = extend (extend {}, @attributes),
+					currentApp:
+						description: "The active application"
+						type: "string"
+
+			extendActions: () =>
+				@actions = extend (extend {}, @actions),
+					setVolume:
+						description: "Change volume of player"
+					castMedia:
+						description: "Cast remote media to device"
+					castText:
+						description: "Cast text as speech to device"
 
 			init: () ->
 				self = this
@@ -129,8 +134,9 @@ module.exports = (env) ->
 
 			onStatus: (status) ->
 				self = this
-				@updateVolume(status);
-				@checkIfIdle(status);
+				@updateVolume(status)
+				@updateApp(status)
+				@checkIfIdle(status)
 				@_client.getSessions((err,sessions) ->
 					if (sessions.length > 0)
 						session = sessions[0];
@@ -164,6 +170,13 @@ module.exports = (env) ->
 				options =
 					level: volume / 100
 				return Promise.resolve(@_client.setVolume(options, (err,response) ->))
+
+			setCurrentApp: (app) ->
+				if @_currentApp isnt app
+					@_currentApp = app
+					@emit 'currentApp', app
+
+			getCurrentApp: () -> Promise.resolve(@_currentApp)
 
 			castMedia: (url) ->
 				media =
@@ -218,6 +231,11 @@ module.exports = (env) ->
 				volume = status?.volume?.level
 				if volume
 					@_setVolume(Math.round(volume * 100))
+
+			updateApp: (status) ->
+				appName = status?.applications?[0]?.displayName
+				if appName?
+					@setCurrentApp(appName)
 
 			updatePlayerState: (status) ->
 				playerstate = status?.playerState
