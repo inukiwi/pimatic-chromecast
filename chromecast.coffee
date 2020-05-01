@@ -223,20 +223,22 @@ module.exports = (env) ->
 				))
 
 			getTtsUrl: (text, lang) ->
-				if @settings.httpsServer?.enabled
+				if !!@plugin.config.hostname and !!@plugin.config.port
+					url = 'https://' + @plugin.hostname + ':' + @plugin.port
+				else if @settings.httpsServer?.enabled
 					if !!@settings.httpsServer.hostname and !!@settings.httpsServer.port
 						url = 'https://' + @settings.httpsServer.hostname + ":" + @settings.httpsServer.port
 					else
-						env.logger.error('Please fill in a hostname and port for the https server in your Pimatic config')
+						env.logger.error('Please fill in a hostname and port for the https server in your Pimatic config or plugin config')
 						return null
 				else if @settings.httpServer?.enabled
 					if !!@settings.httpServer.hostname and !!@settings.httpServer.port
 						url = 'http://' + @settings.httpServer.hostname + ":" + @settings.httpServer.port
 					else
-						env.logger.error('Please fill in a hostname and port for the http server in your Pimatic config')
+						env.logger.error('Please fill in a hostname and port for the http server in your Pimatic config or plugin config')
 						return null
 				else
-					env.logger.error('Please set up the http(s) server in your Pimatic config')
+					env.logger.error('Please set up the http(s) server in your Pimatic config or plugin config')
 					return null
 
 				url = url + '/chromecast-tts?text=' + encodeURI(text) + '&lang=' + lang
