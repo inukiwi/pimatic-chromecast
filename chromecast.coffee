@@ -24,7 +24,7 @@ module.exports = (env) ->
 
 			@framework.deviceManager.registerDeviceClass("Chromecast", {
 				configDef: deviceConfigDef.Chromecast,
-				createCallback: (config) => new Chromecast(config, @framework.config.settings)
+				createCallback: (config) => new Chromecast(config, @, @framework.config.settings)
 			})
 
 			@setupTtsServer(app, @framework)
@@ -80,7 +80,7 @@ module.exports = (env) ->
 			_currentApp = null
 			_unreachable = false
 
-			constructor: (@config, @settings, lastState) ->
+			constructor: (@config, @plugin, @settings, lastState) ->
 				@name = @config.name
 				@id = @config.id 
 				@_volume = lastState?.volume?.value or 0
@@ -112,7 +112,7 @@ module.exports = (env) ->
 				@_client = new Client()
 				@_client.on('error', (err) ->
 					if !_unreachable
-						env.logger.debug('%s: %s', self.name, err.message);
+						if @plugin.debug then env.logger.debug('%s: %s', self.name, err.message);
 						self._unreachable = true;
 						if err.message == 'Device timeout'
 							env.logger.error('%s: Lost connection to device', self.name);
@@ -123,6 +123,7 @@ module.exports = (env) ->
 					self._unreachable = false
 
 					self._client.getStatus((err, status) ->
+						if err? and @plugin.debug then env.logger.debug('%s: %s', self.name, err.message);
 						self.onStatus(status)
 						env.logger.info('Connected to %s', self.name);
 					)
@@ -142,6 +143,7 @@ module.exports = (env) ->
 						session = sessions[0];
 						if session.transportId
 							self._client.join(session, DefaultMediaReceiver, (err,app) ->
+								if err? and @plugin.debug then env.logger.debug('%s: %s', self.name, err.message);
 								self._player = app
 								self._player.on('status', (status) ->
 									self.updatePlayerState(status);
@@ -151,25 +153,33 @@ module.exports = (env) ->
 
 			play: () ->
 				@_player?.play()
+				return Promise.resolve()
 
 			pause: () ->
 				@_player?.pause()
+				return Promise.resolve()
 
 			next: () ->
 				@_player?.media?.sessionRequest({ type: 'QUEUE_UPDATE', jump: 1 })
+				return Promise.resolve()
 
 			previous: () ->
 				@_player?.media?.sessionRequest({ type: 'QUEUE_UPDATE', jump: -1 })
+				return Promise.resolve()
 
 			stop: () ->
 				if @_player.connection
 					@_client.stop(@._player, (err,response) ->
+						if err? and @plugin.debug then env.logger.debug('%s: %s', self.name, err.message);
 					)
+				return Promise.resolve()
 
 			setVolume: (volume) ->
 				options =
 					level: volume / 100
-				return Promise.resolve(@_client.setVolume(options, (err,response) ->))
+				return Promise.resolve(@_client.setVolume(options, (err,response) ->
+					if err? and @plugin.debug then env.logger.debug('%s: %s', self.name, err.message);
+				))
 
 			setCurrentApp: (app) ->
 				if @_currentApp isnt app
@@ -199,12 +209,17 @@ module.exports = (env) ->
 			startStream: (media) ->
 				self = this
 				return Promise.resolve(@_client.launch(DefaultMediaReceiver, (err,player) ->
+					if err? and @plugin.debug then env.logger.debug('%s: %s', self.name, err.message);
 					player.on('status', (status) ->
 						if status.idleReason == 'FINISHED'
-							self._client.stop(player, (err,response) ->)
+							self._client.stop(player, (err,response) ->
+								if err? and @plugin.debug then env.logger.debug('%s: %s', self.name, err.message);
+							)
 					)
 
-					player.load(media, { autoplay: true}, (err,status) ->)
+					player.load(media, { autoplay: true}, (err,status) ->
+						if err? and @plugin.debug then env.logger.debug('%s: %s', self.name, err.message);
+					)
 				))
 
 			getTtsUrl: (text, lang) ->
