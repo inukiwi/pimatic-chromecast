@@ -224,7 +224,7 @@ module.exports = (env) ->
 
 			getTtsUrl: (text, lang) ->
 				if !!@plugin.config.hostname and !!@plugin.config.port
-					url = 'https://' + @plugin.hostname + ':' + @plugin.port
+					url = 'https://' + @plugin.config.hostname + ':' + @plugin.config.port
 				else if @settings.httpsServer?.enabled
 					if !!@settings.httpsServer.hostname and !!@settings.httpsServer.port
 						url = 'https://' + @settings.httpsServer.hostname + ":" + @settings.httpsServer.port
