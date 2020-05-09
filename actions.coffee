@@ -100,13 +100,13 @@ module.exports = (env) ->
         return {
           token: match
           nextInput: input.substring(match.length)
-          actionHandler: new ChromecastTtsActionHandler(device, text, lang)
+          actionHandler: new ChromecastTtsActionHandler(@framework, device, text, lang)
         }
       else
         return null
         
   class ChromecastTtsActionHandler extends env.actions.ActionHandler
-    constructor: (@device, @text, @lang) ->
+    constructor: (@framework, @device, @text, @lang) ->
 
     setup: ->
       @dependOnDevice(@device)
@@ -115,9 +115,13 @@ module.exports = (env) ->
     executeAction: (simulate) => 
       return (
         if simulate
-          Promise.resolve("would cast text \"" + @text + "\" in " + @lang + " to " + @device.name)
+          @framework.variableManager.evaluateStringExpression(@text).then( (parsed) =>
+            Promise.resolve("would cast text \"" + parsed + "\" in " + @lang + " to " + @device.name)
+          )
         else
-          @device.castText(@text[0].slice(1, -1), @lang[0].slice(1, -1)).then( => "cast text " + @text + " in " + @lang + " to " + @device.name)
+          @framework.variableManager.evaluateStringExpression(@text).then( (parsed) =>
+            @device.castText(parsed, @lang[0].slice(1, -1)).then( => "cast text " + parsed + " in " + @lang + " to " + @device.name)
+          )
       )
 
   return exports = {
