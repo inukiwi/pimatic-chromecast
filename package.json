@@ -1,7 +1,7 @@
 {
   "name": "pimatic-chromecast",
   "description": "Access your Google Cast devices in pimatic",
-  "author": "FrostedKiwi <apps@frosted.kiwi> (https://frosted.kiwi)",
+  "author": "inukiwi <dev@inu.kiwi>",
   "license": "GPL-2.0",
   "main": "chromecast",
   "files": [
@@ -17,10 +17,10 @@
     "pimatic-plugin"
   ],
   "version": "1.3.0",
-  "homepage": "https://github.com/FrostedKiwi/pimatic-chromecast",
+  "homepage": "https://github.com/inukiwi/pimatic-chromecast",
   "repository": {
     "type": "git",
-    "url": "git://github.com/FrostedKiwi/pimatic-chromecast.git"
+    "url": "git://github.com/inukiwi/pimatic-chromecast.git"
   },
   "configSchema": "chromecast-config-schema.coffee",
   "dependencies": {
