@@ -5,7 +5,7 @@ pimatic-chromecast
 Access your Google Cast devices in pimatic
 
 ## Features
-- Discover Google Cast compatible devices in your network
+- Discover Google Cast compatible devices and groups in your network
 - Retrieve media status from Chromecast (playstate, volume, artist, title)
 - Control media (play, pause, stop, skip, previous)
 - Control volume using rules

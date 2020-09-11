@@ -60,13 +60,15 @@ module.exports = (env) ->
 			browser.on('serviceUp', (service) ->
 				name = service.txtRecord.fn
 				ip = service.addresses[0]
+				port = service.port
 				isnew = not _deviceManager.devicesConfig.some (deviceconf, iterator) =>
-					deviceconf.ip is ip
+					deviceconf.class is 'Chromecast' and deviceconf.ip is ip and deviceconf.port is port
 				if isnew
 					config =
 						class: "Chromecast"
 						name: name
 						ip: ip
+						port: port
 					_deviceManager.discoveredDevice( "pimatic-chromecast", config.name, config)
 			);
 
@@ -115,11 +117,14 @@ module.exports = (env) ->
 						if self.plugin.config.debug then env.logger.debug('%s: %s', self.name, err.message);
 						self._unreachable = true;
 						if err.message == 'Device timeout'
-							env.logger.error('%s: Lost connection to device', self.name);
+							env.logger.debug('%s: Lost connection to device', self.name);
 					self._client.close();
 					setTimeout( ( => self.init() ), 5000)
 				);
-				@_client.connect(@config.ip, ->
+				options =
+					host: @config.ip
+					port: @config.port
+				@_client.connect(options, ->
 					self._unreachable = false
 
 					self._client.getStatus((err, status) ->

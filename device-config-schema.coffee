@@ -7,5 +7,9 @@ module.exports ={
       ip:
         description: "The ip of the Chromecast device"
         type: "string"
+      port:
+        description: "The port of the Chromecast device"
+        type: "number"
+        default: 8009
   }
 }
