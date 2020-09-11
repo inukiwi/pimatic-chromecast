@@ -274,7 +274,7 @@ module.exports = (env) ->
 
 			checkIfIdle: (status) ->
 				idlescreen = status?.applications?[0].isIdleScreen
-				if idlescreen
+				if idlescreen or not status?.applications?
 					@_setState('stop')
 					@_setCurrentArtist('')
 					@_setCurrentTitle('')
