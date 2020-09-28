@@ -59,6 +59,7 @@ module.exports = (env) ->
 
 			browser.on('serviceUp', (service) ->
 				name = service.txtRecord.fn
+				id = service.txtRecord.id
 				ip = service.addresses[0]
 				port = service.port
 				isnew = not _deviceManager.devicesConfig.some (deviceconf, iterator) =>
@@ -69,6 +70,7 @@ module.exports = (env) ->
 						name: name
 						ip: ip
 						port: port
+						castid: id
 					_deviceManager.discoveredDevice( "pimatic-chromecast", config.name, config)
 			);
 
@@ -84,7 +86,10 @@ module.exports = (env) ->
 
 			constructor: (@config, @plugin, @settings, lastState) ->
 				@name = @config.name
-				@id = @config.id 
+				@id = @config.id
+				@ip = @config.ip
+				@port = @config.port
+				@castid = @config.castid
 				@_volume = lastState?.volume?.value or 0
 				@_state = lastState?.state?.value or off
 				@_currentApp = lastState?.currentApp?.value or ""
@@ -118,12 +123,14 @@ module.exports = (env) ->
 						self._unreachable = true;
 						if err.message == 'Device timeout'
 							env.logger.debug('%s: Lost connection to device', self.name);
-					self._client.close();
-					setTimeout( ( => self.init() ), 5000)
+					if self._client?
+						self._client.close();
+					self.findConnectionDetails()
+					setTimeout( ( => self.init() ), 10000)
 				);
 				options =
-					host: @config.ip
-					port: @config.port
+					host: @ip
+					port: @port
 				@_client.connect(options, ->
 					self._unreachable = false
 
@@ -278,6 +285,32 @@ module.exports = (env) ->
 					@_setState('stop')
 					@_setCurrentArtist('')
 					@_setCurrentTitle('')
+
+			findConnectionDetails: () ->
+				self = this
+
+				if @id?
+					sequence = [
+						mdns.rst.DNSServiceResolve()
+						if 'DNSServiceGetAddrInfo' of mdns.dns_sd then mdns.rst.DNSServiceGetAddrInfo() else mdns.rst.getaddrinfo(families: [ 4 ])
+						mdns.rst.makeAddressesUnique()
+					]
+					browser = mdns.createBrowser(mdns.tcp('googlecast'), {resolverSequence: sequence})
+
+					browser.on('serviceUp', (service) ->
+						id = service.txtRecord.id
+						ip = service.addresses[0]
+						port = service.port
+						
+						if id == self.castid
+							self.ip = ip
+							self.port = port
+							self.init()
+							browser.stop()
+					);
+
+					browser.start();
+					setTimeout( ( => browser.stop() ), 10000)
 
 			destroy: () ->
 				super()

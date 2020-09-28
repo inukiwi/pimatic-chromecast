@@ -11,5 +11,9 @@ module.exports ={
         description: "The port of the Chromecast device"
         type: "number"
         default: 8009
+      castid:
+        description: "The id used to identify Chromecast devices"
+        type: "string"
+        default: ""
   }
 }
