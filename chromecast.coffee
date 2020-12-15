@@ -63,7 +63,7 @@ module.exports = (env) ->
 				ip = service.addresses[0]
 				port = service.port
 				isnew = not _deviceManager.devicesConfig.some (deviceconf, iterator) =>
-					deviceconf.class is 'Chromecast' and deviceconf.ip is ip and deviceconf.port is port
+					deviceconf.class is 'Chromecast' && deviceconf.castid is id
 				if isnew
 					config =
 						class: "Chromecast"
@@ -125,8 +125,10 @@ module.exports = (env) ->
 							env.logger.debug('%s: Lost connection to device', self.name);
 					if self._client?
 						self._client.close();
-					self.findConnectionDetails()
-					setTimeout( ( => self.init() ), 10000)
+					if err.syscall == 'connect' && err.code == 'ECONNREFUSED'
+						self.findConnectionDetails()
+					else
+						setTimeout( ( => self.init() ), 30000)
 				);
 				options =
 					host: @ip
@@ -303,14 +305,16 @@ module.exports = (env) ->
 						port = service.port
 						
 						if id == self.castid
+							browser.stop()
 							self.ip = ip
 							self.port = port
 							self.init()
-							browser.stop()
 					);
 
 					browser.start();
 					setTimeout( ( => browser.stop() ), 10000)
+				else
+					setTimeout( ( => self.init() ), 30000)
 
 			destroy: () ->
 				super()
