@@ -58,7 +58,7 @@ module.exports = (env) ->
         if simulate
           Promise.resolve("would cast " + @url + " to " + @device.name)
         else
-          @device.castMedia(url[0].slice(1, -1)).then( => "cast " + @url + " to " + @device.name)
+          @device.castMedia(@url[0].slice(1, -1)).then( => "cast " + @url + " to " + @device.name)
       )
 
   class ChromecastTtsActionProvider extends env.actions.ActionProvider
